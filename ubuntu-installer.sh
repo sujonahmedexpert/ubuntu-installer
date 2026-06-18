@@ -186,8 +186,50 @@ install_udroid() {
     
     print_success "Stuck processes fixed."
     echo ""
-    print_success "Ubuntu installation completed successfully!"
-    print_info "You can now start Ubuntu from the main menu."
+    
+    # Create start-ubuntu shortcut command
+    print_info "Creating shortcut commands..."
+    cat > "$PREFIX/bin/start-ubuntu" << 'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+killall -9 termux-x11 2>/dev/null
+rm -rf /tmp/.X11-unix 2>/dev/null
+rm -rf /tmp/.X0-lock 2>/dev/null
+export LD_PRELOAD=/system/lib64/libskcodec.so
+pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1 2>/dev/null
+termux-x11 :1 -ac &
+sleep 2
+udroid login jammy:xfce4
+export DISPLAY=:1
+startxfce4 &
+EOF
+    chmod +x "$PREFIX/bin/start-ubuntu"
+    
+    # Create stop-ubuntu shortcut command
+    cat > "$PREFIX/bin/stop-ubuntu" << 'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+killall -9 termux-x11 2>/dev/null
+killall -9 pulseaudio 2>/dev/null
+rm -rf /tmp/.X11-unix 2>/dev/null
+rm -rf /tmp/.X0-lock 2>/dev/null
+EOF
+    chmod +x "$PREFIX/bin/stop-ubuntu"
+    
+    print_success "Shortcut commands created!"
+    echo ""
+    
+    echo -e "${GREEN}"
+    echo -e "  ╔═══════════════════════════════════════════════════╗"
+    echo -e "  ║  Installation Complete! 🎉                       ║"
+    echo -e "  ╠═══════════════════════════════════════════════════╣"
+    echo -e "  ║                                                   ║"
+    echo -e "  ║  ▶ START Ubuntu:   start-ubuntu                  ║"
+    echo -e "  ║  ■ STOP Ubuntu:    stop-ubuntu                   ║"
+    echo -e "  ║                                                   ║"
+    echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
+    echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
+    echo -e "  ║                                                   ║"
+    echo -e "  ╚═══════════════════════════════════════════════════╝"
+    echo -e "${RESET}"
     press_enter
 }
 
@@ -256,7 +298,31 @@ install_official() {
     
     echo ""
     print_success "Ubuntu ${version_name} installed successfully!"
-    print_info "Use 'Start Ubuntu' from the main menu to launch it."
+    echo ""
+    
+    # Create start-ubuntu-official shortcut command
+    print_info "Creating shortcut command..."
+    cat > "$PREFIX/bin/start-ubuntu-official" << EOF
+#!/data/data/com.termux/files/usr/bin/bash
+proot-distro login ${ubuntu_version}
+EOF
+    chmod +x "$PREFIX/bin/start-ubuntu-official"
+    
+    print_success "Shortcut command created!"
+    echo ""
+    
+    echo -e "${GREEN}"
+    echo -e "  ╔═══════════════════════════════════════════════════╗"
+    echo -e "  ║  Installation Complete! 🎉                       ║"
+    echo -e "  ╠═══════════════════════════════════════════════════╣"
+    echo -e "  ║                                                   ║"
+    echo -e "  ║  ▶ START Ubuntu:   start-ubuntu-official          ║"
+    echo -e "  ║                                                   ║"
+    echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
+    echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
+    echo -e "  ║                                                   ║"
+    echo -e "  ╚═══════════════════════════════════════════════════╝"
+    echo -e "${RESET}"
     press_enter
 }
 
@@ -379,6 +445,51 @@ install_smart() {
         pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1 2>/dev/null
         
         print_success "Ubuntu installed successfully via udroid!"
+        echo ""
+        
+        # Create start-ubuntu shortcut command (same as option 1)
+        print_info "Creating shortcut commands..."
+        cat > "$PREFIX/bin/start-ubuntu" << 'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+killall -9 termux-x11 2>/dev/null
+rm -rf /tmp/.X11-unix 2>/dev/null
+rm -rf /tmp/.X0-lock 2>/dev/null
+export LD_PRELOAD=/system/lib64/libskcodec.so
+pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1 2>/dev/null
+termux-x11 :1 -ac &
+sleep 2
+udroid login jammy:xfce4
+export DISPLAY=:1
+startxfce4 &
+EOF
+        chmod +x "$PREFIX/bin/start-ubuntu"
+        
+        # Create stop-ubuntu shortcut command
+        cat > "$PREFIX/bin/stop-ubuntu" << 'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+killall -9 termux-x11 2>/dev/null
+killall -9 pulseaudio 2>/dev/null
+rm -rf /tmp/.X11-unix 2>/dev/null
+rm -rf /tmp/.X0-lock 2>/dev/null
+EOF
+        chmod +x "$PREFIX/bin/stop-ubuntu"
+        
+        print_success "Shortcut commands created!"
+        echo ""
+        
+        echo -e "${GREEN}"
+        echo -e "  ╔═══════════════════════════════════════════════════╗"
+        echo -e "  ║  Installation Complete! 🎉                       ║"
+        echo -e "  ╠═══════════════════════════════════════════════════╣"
+        echo -e "  ║                                                   ║"
+        echo -e "  ║  ▶ START Ubuntu:   start-ubuntu                  ║"
+        echo -e "  ║  ■ STOP Ubuntu:    stop-ubuntu                   ║"
+        echo -e "  ║                                                   ║"
+        echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
+        echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
+        echo -e "  ║                                                   ║"
+        echo -e "  ╚═══════════════════════════════════════════════════╝"
+        echo -e "${RESET}"
     else
         print_info "Installing Ubuntu ${version_name} via proot-distro..."
         print_separator
@@ -394,9 +505,33 @@ install_smart() {
         fi
         
         print_success "Ubuntu ${version_name} installed successfully!"
+        echo ""
+        
+        # Create start-ubuntu-smart shortcut command
+        print_info "Creating shortcut command..."
+        cat > "$PREFIX/bin/start-ubuntu-smart" << EOF
+#!/data/data/com.termux/files/usr/bin/bash
+proot-distro login ${ubuntu_version}
+EOF
+        chmod +x "$PREFIX/bin/start-ubuntu-smart"
+        
+        print_success "Shortcut command created!"
+        echo ""
+        
+        echo -e "${GREEN}"
+        echo -e "  ╔═══════════════════════════════════════════════════╗"
+        echo -e "  ║  Installation Complete! 🎉                       ║"
+        echo -e "  ╠═══════════════════════════════════════════════════╣"
+        echo -e "  ║                                                   ║"
+        echo -e "  ║  ▶ START Ubuntu:   start-ubuntu-smart             ║"
+        echo -e "  ║                                                   ║"
+        echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
+        echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
+        echo -e "  ║                                                   ║"
+        echo -e "  ╚═══════════════════════════════════════════════════╝"
+        echo -e "${RESET}"
     fi
     
-    print_info "Use 'Start Ubuntu' from the main menu to launch it."
     press_enter
 }
 
@@ -406,6 +541,14 @@ install_smart() {
 start_ubuntu() {
     show_banner
     echo -e "  ${BG_GREEN}${WHITE} START UBUNTU ${RESET}"
+    echo ""
+    print_separator
+    echo ""
+    echo -e "  ${YELLOW}💡 TIP:${RESET} আপনি সরাসরি terminal এ এই commands ব্যবহার করতে পারেন:"
+    echo -e "     ${GREEN}start-ubuntu${RESET}          - Custom Super-Fix (udroid) start"
+    echo -e "     ${GREEN}stop-ubuntu${RESET}           - Custom Super-Fix (udroid) stop"
+    echo -e "     ${GREEN}start-ubuntu-official${RESET} - Official proot-distro start"
+    echo -e "     ${GREEN}start-ubuntu-smart${RESET}    - Smart Auto-Detect start"
     echo ""
     print_separator
     echo ""
