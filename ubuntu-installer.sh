@@ -1,9 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# ============================================================
-# Termux Ubuntu Installer Tool
-# A colorful menu-based Ubuntu installer for Termux
-# ============================================================
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║         Termux Ubuntu Installer Tool v3.0                     ║
+# ║         A beautiful menu-based Ubuntu installer               ║
+# ╚═══════════════════════════════════════════════════════════════╝
 
 # Color Definitions
 RED='\033[1;31m'
@@ -14,65 +14,167 @@ MAGENTA='\033[1;35m'
 CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 RESET='\033[0m'
+NC='\033[0m'
 BG_RED='\033[41m'
 BG_GREEN='\033[42m'
 BG_BLUE='\033[44m'
+BG_CYAN='\033[46m'
 BG_MAGENTA='\033[45m'
+BG_YELLOW='\033[43m'
 BOLD='\033[1m'
 DIM='\033[2m'
+ITALIC='\033[3m'
+UNDERLINE='\033[4m'
 
-# ============================================================
-# Banner Function
-# ============================================================
+# Box Drawing Characters
+BOX_TL="╔"
+BOX_TR="╗"
+BOX_BL="╚"
+BOX_BR="╝"
+BOX_H="═"
+BOX_V="║"
+BOX_ML="╠"
+BOX_MR="╣"
+
+# Terminal width detection
+get_term_width() {
+    local width=$(tput cols 2>/dev/null || echo 60)
+    if [ "$width" -gt 62 ]; then
+        echo 60
+    else
+        echo $((width - 2))
+    fi
+}
+
+TERM_WIDTH=$(get_term_width)
+BOX_WIDTH=58
+
+# Center text helper
+center_text() {
+    local text="$1"
+    local width="${2:-$BOX_WIDTH}"
+    local text_len=${#text}
+    local padding=$(( (width - text_len) / 2 ))
+    if [ $padding -lt 0 ]; then padding=0; fi
+    printf "%*s%s" $padding "" "$text"
+}
+
+# Draw a full-width separator line
+draw_line() {
+    local char="${1:-═}"
+    local color="${2:-$CYAN}"
+    local width="${3:-$BOX_WIDTH}"
+    local line=""
+    for ((i=0; i<width; i++)); do
+        line="${line}${char}"
+    done
+    echo -e "  ${color}${line}${RESET}"
+}
+
+# Draw box top
+draw_box_top() {
+    local color="${1:-$CYAN}"
+    local width="${2:-$BOX_WIDTH}"
+    local line="${BOX_TL}"
+    for ((i=0; i<width; i++)); do
+        line="${line}${BOX_H}"
+    done
+    line="${line}${BOX_TR}"
+    echo -e "  ${color}${line}${RESET}"
+}
+
+# Draw box bottom
+draw_box_bottom() {
+    local color="${1:-$CYAN}"
+    local width="${2:-$BOX_WIDTH}"
+    local line="${BOX_BL}"
+    for ((i=0; i<width; i++)); do
+        line="${line}${BOX_H}"
+    done
+    line="${line}${BOX_BR}"
+    echo -e "  ${color}${line}${RESET}"
+}
+
+# Draw box middle separator
+draw_box_mid() {
+    local color="${1:-$CYAN}"
+    local width="${2:-$BOX_WIDTH}"
+    local line="${BOX_ML}"
+    for ((i=0; i<width; i++)); do
+        line="${line}${BOX_H}"
+    done
+    line="${line}${BOX_MR}"
+    echo -e "  ${color}${line}${RESET}"
+}
+
+# Draw box content line (with padding)
+draw_box_content() {
+    local text="$1"
+    local color="${2:-$CYAN}"
+    local width="${3:-$BOX_WIDTH}"
+    echo -e "  ${color}${BOX_V}${RESET} ${text}$(printf '%*s' $((width - ${#text} - 1)) '')${color}${BOX_V}${RESET}"
+}
+
+# Footer separator - shows at bottom of every page
+show_footer() {
+    echo ""
+    echo -e "  ${DIM}${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "  ${DIM}${CYAN}  Ubuntu Installer v3.0${RESET}  ${DIM}${WHITE}|${RESET}  ${DIM}${GREEN}Termux${RESET}  ${DIM}${WHITE}|${RESET}  ${DIM}${YELLOW}Android/Linux${RESET}"
+    echo -e "  ${DIM}${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+}
+
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║                     Banner Function                           ║
+# ╚═══════════════════════════════════════════════════════════════╝
 show_banner() {
     clear
-    echo -e "${CYAN}"
-    echo -e "  ╔══════════════════════════════════════════════════════╗"
-    echo -e "  ║                                                      ║"
-    echo -e "  ║${MAGENTA}   ██╗   ██╗██████╗ ██╗   ██╗███╗   ██╗████████╗██╗   ██╗${CYAN}║"
-    echo -e "  ║${MAGENTA}   ██║   ██║██╔══██╗██║   ██║████╗  ██║╚══██╔══╝██║   ██║${CYAN}║"
-    echo -e "  ║${MAGENTA}   ██║   ██║██████╔╝██║   ██║██╔██╗ ██║   ██║   ██║   ██║${CYAN}║"
-    echo -e "  ║${MAGENTA}   ██║   ██║██╔══██╗██║   ██║██║╚██╗██║   ██║   ██║   ██║${CYAN}║"
-    echo -e "  ║${MAGENTA}   ╚██████╔╝██████╔╝╚██████╔╝██║ ╚████║   ██║   ╚██████╔╝${CYAN}║"
-    echo -e "  ║${MAGENTA}    ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ${CYAN}║"
-    echo -e "  ║                                                      ║"
-    echo -e "  ║${GREEN}        ╦╔╗╔╔═╗╔╦╗╔═╗╦  ╦  ╔═╗╦═╗                   ${CYAN}║"
-    echo -e "  ║${GREEN}        ║║║║╚═╗ ║ ╠═╣║  ║  ║╣ ╠╦╝                   ${CYAN}║"
-    echo -e "  ║${GREEN}        ╩╝╚╝╚═╝ ╩ ╩ ╩╩═╝╩═╝╚═╝╩╚═                   ${CYAN}║"
-    echo -e "  ║                                                      ║"
-    echo -e "  ║${YELLOW}     [ Termux Ubuntu Installer Tool v2.0 ]           ${CYAN}║"
-    echo -e "  ║${DIM}${WHITE}        Developed for Android/Termux Users           ${RESET}${CYAN}║"
-    echo -e "  ║                                                      ║"
-    echo -e "  ╚══════════════════════════════════════════════════════╝${RESET}"
+    echo ""
+    echo -e "  ${MAGENTA}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RED}  ██╗   ██╗${YELLOW}██████╗ ${GREEN}██╗   ██╗${CYAN}███╗   ██╗${MAGENTA}████████╗${BLUE}███████╗${RED}██████╗  ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RED}  ██║   ██║${YELLOW}██╔══██╗${GREEN}██║   ██║${CYAN}████╗  ██║${MAGENTA}╚══██╔══╝${BLUE}██╔════╝${RED}██╔══██╗ ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RED}  ██║   ██║${YELLOW}██████╔╝${GREEN}██║   ██║${CYAN}██╔██╗ ██║${MAGENTA}   ██║   ${BLUE}█████╗  ${RED}██████╔╝ ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RED}  ██║   ██║${YELLOW}██╔══██╗${GREEN}██║   ██║${CYAN}██║╚██╗██║${MAGENTA}   ██║   ${BLUE}██╔══╝  ${RED}██╔══██╗ ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RED}  ╚██████╔╝${YELLOW}██████╔╝${GREEN}╚██████╔╝${CYAN}██║ ╚████║${MAGENTA}   ██║   ${BLUE}███████╗${RED}██║  ██║ ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RED}   ╚═════╝ ${YELLOW}╚═════╝  ${GREEN}╚═════╝ ${CYAN}╚═╝  ╚═══╝${MAGENTA}   ╚═╝   ${BLUE}╚══════╝${RED}╚═╝  ╚═╝ ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}     ${YELLOW}⚡${RESET} ${WHITE}${BOLD}Termux Ubuntu Installer${RESET} ${CYAN}v3.0${RESET} ${YELLOW}⚡${RESET}                     ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}     ${DIM}${WHITE}   Developed for Android/Termux Users${RESET}                  ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}     ${GREEN}🐧${RESET} ${DIM}Install Ubuntu on your phone${RESET}                        ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
 }
 
-# ============================================================
-# Utility Functions
-# ============================================================
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║                    Utility Functions                           ║
+# ╚═══════════════════════════════════════════════════════════════╝
 print_separator() {
-    echo -e "${CYAN}  ──────────────────────────────────────────────────────${RESET}"
+    echo -e "  ${CYAN}══════════════════════════════════════════════════════════════${RESET}"
 }
 
 print_success() {
-    echo -e "  ${GREEN}[✓]${RESET} $1"
+    echo -e "  ${GREEN}  ✅ ${BOLD}$1${RESET}"
 }
 
 print_error() {
-    echo -e "  ${RED}[✗]${RESET} $1"
+    echo -e "  ${RED}  ❌ ${BOLD}$1${RESET}"
 }
 
 print_info() {
-    echo -e "  ${BLUE}[i]${RESET} $1"
+    echo -e "  ${CYAN}  💡 ${RESET}$1"
 }
 
 print_warning() {
-    echo -e "  ${YELLOW}[!]${RESET} $1"
+    echo -e "  ${YELLOW}  ⚠️  ${BOLD}$1${RESET}"
 }
 
 press_enter() {
+    show_footer
     echo ""
-    echo -ne "  ${DIM}Press Enter to continue...${RESET}"
+    echo -ne "  ${YELLOW}  ⏎  ${WHITE}Enter চাপুন চালিয়ে যেতে...${RESET}"
     read
 }
 
@@ -1031,14 +1133,14 @@ show_download_info() {
     local free_storage=$(get_free_storage_mb)
 
     echo ""
-    echo -e "  ${CYAN}╔═══════════════════════════════════════════════════════╗${RESET}"
-    echo -e "  ${CYAN}║${RESET}  ${WHITE}${BOLD}ডাউনলোড তথ্য / Download Info${RESET}                       ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}╠═══════════════════════════════════════════════════════╣${RESET}"
-    echo -e "  ${CYAN}║${RESET}  ${GREEN}প্যাকেজ:${RESET} ${description}                       ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}║${RESET}  ${GREEN}সাইজ:${RESET}   ~${total_size_mb} MB (${total_size_mb%.*} MB ডাউনলোড হবে)     ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}║${RESET}  ${GREEN}ফ্রি:${RESET}    ${free_storage} MB আপনার ফোনে খালি আছে       ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}║${RESET}  ${GREEN}প্রয়োজন:${RESET} ~$((total_size_mb * 3)) MB (extract সহ)         ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}╚═══════════════════════════════════════════════════════╝${RESET}"
+    echo -e "  ${BLUE}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${WHITE}${BOLD}📦 Download Info${RESET}                                          ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${CYAN}📋 Package:${RESET}   ${WHITE}${description}${RESET}$(printf '%*s' $((35 - ${#description})) '')${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${CYAN}💾 Size:${RESET}      ${GREEN}~${total_size_mb} MB${RESET}                                    ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${CYAN}📱 Free:${RESET}      ${GREEN}${free_storage} MB${RESET}                                   ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${CYAN}📊 Required:${RESET}  ${YELLOW}~$((total_size_mb * 3)) MB${RESET} (with extraction)            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
 
     if [ -n "$free_storage" ] && [ "$free_storage" -lt $((total_size_mb * 3)) ] 2>/dev/null; then
@@ -1213,11 +1315,11 @@ pip_style_progress() {
 show_fix_status() {
     if [ $AUTO_FIX_COUNT -gt 0 ]; then
         echo ""
-        echo -e "  ${GREEN}╔═════════════════════════════════════════════════════╗${RESET}"
-        echo -e "  ${GREEN}║  ${WHITE}${BOLD}Auto-Fix Summary${RESET}                                   ${GREEN}║${RESET}"
-        echo -e "  ${GREEN}╠═════════════════════════════════════════════════════╣${RESET}"
-        echo -e "  ${GREEN}║${RESET}  মোট ${GREEN}${AUTO_FIX_COUNT}${RESET}টি সমস্যা স্বয়ংক্রিয়ভাবে সমাধান হয়েছে!   ${GREEN}║${RESET}"
-        echo -e "  ${GREEN}╚═════════════════════════════════════════════════════╝${RESET}"
+        echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${WHITE}${BOLD}🔧 Auto-Fix Summary${RESET}                                      ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ✅ মোট ${GREEN}${BOLD}${AUTO_FIX_COUNT}${RESET}টি সমস্যা স্বয়ংক্রিয়ভাবে সমাধান হয়েছে!     ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
         echo ""
     fi
 }
@@ -1227,16 +1329,23 @@ show_fix_status() {
 # Ask User for Personalized Command Name
 # ============================================================
 ask_user_command_name() {
+    clear
     echo ""
-    echo -e "  ${CYAN}╔═══════════════════════════════════════════════════╗${RESET}"
-    echo -e "  ${CYAN}║${RESET}  ${WHITE}${BOLD}Welcome! আপনার নাম দিন${RESET}                          ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}╠═══════════════════════════════════════════════════╣${RESET}"
-    echo -e "  ${CYAN}║${RESET}  আপনার নাম অনুযায়ী command তৈরি হবে।            ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}║${RESET}  উদাহরণ: নাম 'sujon' হলে command হবে:            ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}║${RESET}    ${GREEN}start-sujon${RESET} / ${GREEN}stop-sujon${RESET}                      ${CYAN}║${RESET}"
-    echo -e "  ${CYAN}╚═══════════════════════════════════════════════════╝${RESET}"
+    echo -e "  ${CYAN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}     ${YELLOW}👋${RESET} ${WHITE}${BOLD}Welcome! আপনার নাম দিন${RESET}                             ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}  ${WHITE}আপনার নাম অনুযায়ী command তৈরি হবে।${RESET}                  ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}  ${DIM}উদাহরণ: নাম${RESET} ${GREEN}'sujon'${RESET} ${DIM}হলে command হবে:${RESET}                ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}     ${GREEN}▶ start-sujon${RESET}   ${DIM}(Ubuntu চালু)${RESET}                     ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}     ${RED}■ stop-sujon${RESET}    ${DIM}(Ubuntu বন্ধ)${RESET}                      ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
-    echo -ne "  ${YELLOW}আপনার নাম লিখুন: ${RESET}"
+    echo -ne "  ${YELLOW}  ✏️  আপনার নাম লিখুন: ${RESET}"
     read user_cmd_name
 
     # Remove spaces and special characters, convert to lowercase
@@ -1246,12 +1355,15 @@ ask_user_command_name() {
         user_cmd_name="ubuntu"
         print_warning "কোনো নাম দেওয়া হয়নি, ডিফল্ট 'ubuntu' ব্যবহার হবে।"
     else
-        print_success "স্বাগতম, ${GREEN}${user_cmd_name}${RESET}! আপনার command হবে: ${GREEN}start-${user_cmd_name}${RESET}"
+        echo ""
+        print_success "স্বাগতম, ${GREEN}${BOLD}${user_cmd_name}${RESET}!"
+        echo -e "  ${BLUE}  🎯 ${RESET}আপনার command হবে: ${GREEN}${BOLD}start-${user_cmd_name}${RESET}"
     fi
     echo ""
 
     # Set global variable for use throughout the session
     PERSONALIZED_CMD_NAME="$user_cmd_name"
+    sleep 1
 }
 
 # ============================================================
@@ -1288,17 +1400,22 @@ get_free_storage_mb() {
 # Version 1: Custom Super-Fix Setup
 # ============================================================
 install_udroid() {
+    clear
     show_banner
-    echo -e "  ${BG_MAGENTA}${WHITE} CUSTOM SUPER-FIX SETUP ${RESET}"
+    echo -e "  ${MAGENTA}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}     ${MAGENTA}🛠️ ${RESET} ${WHITE}${BOLD}CUSTOM SUPER-FIX SETUP${RESET}                              ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}  ${WHITE}এটি udroid method ব্যবহার করে Ubuntu ইনস্টল করবে।${RESET}      ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}  ${WHITE}সব প্রয়োজনীয় packages অটো ইনস্টল হবে।${RESET}                ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}  ${DIM}Features: X11 + Audio + Desktop Environment${RESET}             ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}║${RESET}                                                            ${MAGENTA}║${RESET}"
+    echo -e "  ${MAGENTA}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
-    print_separator
-    echo ""
-    print_info "This will install Ubuntu using the udroid method."
-    print_info "All necessary packages will be installed automatically."
-    echo ""
-    print_separator
-    echo ""
-    echo -ne "  ${YELLOW}Proceed with installation? [y/N]: ${RESET}"
+    echo -ne "  ${YELLOW}  ❓ ${WHITE}ইনস্টল শুরু করবেন? ${RESET}[${GREEN}y${RESET}/${RED}N${RESET}]: "
     read confirm
     
     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -1307,8 +1424,9 @@ install_udroid() {
         return
     fi
     
-    echo ""
-    print_info "Step 1/4: Updating and upgrading packages..."
+    clear
+    show_banner
+    echo -e "  ${CYAN}${BOLD}  📥 Step 1/4: Updating and upgrading packages...${RESET}"
     print_separator
     pip_style_progress "pkg update && pkg upgrade -y" "termux-packages" "50"
     if [ $? -ne 0 ]; then
@@ -1319,7 +1437,7 @@ install_udroid() {
     print_success "Packages updated successfully."
     echo ""
     
-    print_info "Step 2/4: Installing x11-repo and termux-x11-nightly..."
+    echo -e "  ${CYAN}${BOLD}  📥 Step 2/4: Installing x11-repo and termux-x11-nightly...${RESET}"
     print_separator
     pip_style_progress "pkg install x11-repo -y && pkg install termux-x11-nightly -y" "termux-x11-nightly" "200"
     if [ $? -ne 0 ]; then
@@ -1330,7 +1448,7 @@ install_udroid() {
     print_success "X11 packages installed successfully."
     echo ""
     
-    print_info "Step 3/4: Installing proot and pulseaudio..."
+    echo -e "  ${CYAN}${BOLD}  📥 Step 3/4: Installing proot and pulseaudio...${RESET}"
     print_separator
     pip_style_progress "pkg install proot pulseaudio -y" "proot-pulseaudio" "80"
     if [ $? -ne 0 ]; then
@@ -1341,7 +1459,7 @@ install_udroid() {
     print_success "Proot and PulseAudio installed successfully."
     echo ""
     
-    print_info "Step 4/4: Running udroid installer..."
+    echo -e "  ${CYAN}${BOLD}  📥 Step 4/4: Running udroid installer...${RESET}"
     print_separator
     pip_style_progress ". <(curl -Ls https://bit.ly/udroid-installer)" "ubuntu-rootfs-udroid" "1500"
     if [ $? -ne 0 ]; then
@@ -1398,19 +1516,22 @@ EOF
     print_success "Shortcut commands created!"
     echo ""
     
-    echo -e "${GREEN}"
-    echo -e "  ╔═══════════════════════════════════════════════════╗"
-    echo -e "  ║  Installation Complete! 🎉                       ║"
-    echo -e "  ╠═══════════════════════════════════════════════════╣"
-    echo -e "  ║                                                   ║"
-    echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
-    echo -e "  ║  ■ STOP Ubuntu:    stop-${cmd_name}$(printf '%*s' $((23 - ${#cmd_name})) '')║"
-    echo -e "  ║                                                   ║"
-    echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
-    echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
-    echo -e "  ║                                                   ║"
-    echo -e "  ╚═══════════════════════════════════════════════════╝"
-    echo -e "${RESET}"
+    clear
+    echo ""
+    echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}     ${GREEN}${BOLD}🎉  Installation Complete!  🎉${RESET}                         ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${CYAN}▶${RESET} ${WHITE}START Ubuntu:${RESET}   ${GREEN}${BOLD}start-${cmd_name}${RESET}$(printf '%*s' $((26 - ${#cmd_name})) '')${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${RED}■${RESET} ${WHITE}STOP Ubuntu:${RESET}    ${RED}${BOLD}stop-${cmd_name}${RESET}$(printf '%*s' $((27 - ${#cmd_name})) '')${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}এখন থেকে শুধু এই command দিলেই চলবে!${RESET}               ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}আর এই tool এ আসতে হবে না।${RESET}                        ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
+    echo ""
     press_enter
 }
 
@@ -1418,30 +1539,39 @@ EOF
 # Version 2: Official Repo Version
 # ============================================================
 install_official() {
+    clear
     show_banner
-    echo -e "  ${BG_BLUE}${WHITE} OFFICIAL REPO VERSION ${RESET}"
+    echo -e "  ${BLUE}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}     ${BLUE}📦${RESET} ${WHITE}${BOLD}OFFICIAL REPO VERSION${RESET}                                ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${WHITE}Official proot-distro method ব্যবহার করে ইনস্টল${RESET}         ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}  ${CYAN}📋 Ubuntu Version নির্বাচন করুন:${RESET}                        ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}   ${GREEN}[01]${RESET} ${GREEN}🐧${RESET} ${WHITE}Ubuntu 20.04 LTS${RESET} ${DIM}(Focal Fossa)${RESET}              ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}   ${YELLOW}[02]${RESET} ${YELLOW}🐧${RESET} ${WHITE}Ubuntu 22.04 LTS${RESET} ${DIM}(Jammy Jellyfish)${RESET}          ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}   ${CYAN}[03]${RESET} ${CYAN}🐧${RESET} ${WHITE}Ubuntu 24.04 LTS${RESET} ${DIM}(Noble Numbat)${RESET}             ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}   ${RED}[00]${RESET} ${RED}🔙${RESET} ${WHITE}Back to Install Menu${RESET}                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}║${RESET}                                                            ${BLUE}║${RESET}"
+    echo -e "  ${BLUE}╚══════════════════════════════════════════════════════════════╝${RESET}"
+    show_footer
     echo ""
-    print_separator
-    echo ""
-    print_info "This will install Ubuntu using the official proot-distro method."
-    echo ""
-    echo -e "  ${CYAN}Select Ubuntu version:${RESET}"
-    echo ""
-    echo -e "  ${GREEN}[1]${RESET} Ubuntu 20.04 LTS (Focal Fossa)"
-    echo -e "  ${GREEN}[2]${RESET} Ubuntu 22.04 LTS (Jammy Jellyfish)"
-    echo -e "  ${GREEN}[3]${RESET} Ubuntu 24.04 LTS (Noble Numbat)"
-    echo -e "  ${RED}[0]${RESET} Back to Main Menu"
-    echo ""
-    print_separator
-    echo ""
-    echo -ne "  ${YELLOW}Select option [0-3]: ${RESET}"
+    echo -ne "  ${YELLOW}  👉 Option নির্বাচন করুন ${RESET}[${CYAN}00-03${RESET}]: "
     read version_choice
     
     case $version_choice in
-        1) ubuntu_version="ubuntu-oldlts" ; version_name="20.04 (Focal Fossa)" ;;
-        2) ubuntu_version="ubuntu-lts" ; version_name="22.04 (Jammy Jellyfish)" ;;
-        3) ubuntu_version="ubuntu" ; version_name="24.04 (Noble Numbat)" ;;
-        0) return ;;
+        1|01) ubuntu_version="ubuntu-oldlts" ; version_name="20.04 (Focal Fossa)" ;;
+        2|02) ubuntu_version="ubuntu-lts" ; version_name="22.04 (Jammy Jellyfish)" ;;
+        3|03) ubuntu_version="ubuntu" ; version_name="24.04 (Noble Numbat)" ;;
+        0|00) return ;;
         *)
             print_error "Invalid option."
             press_enter
@@ -1449,8 +1579,9 @@ install_official() {
             ;;
     esac
     
-    echo ""
-    print_info "Installing Ubuntu ${version_name}..."
+    clear
+    show_banner
+    echo -e "  ${BLUE}${BOLD}  📥 Installing Ubuntu ${version_name}...${RESET}"
     print_separator
     echo ""
     
@@ -1495,18 +1626,21 @@ EOF
     print_success "Shortcut command created!"
     echo ""
     
-    echo -e "${GREEN}"
-    echo -e "  ╔═══════════════════════════════════════════════════╗"
-    echo -e "  ║  Installation Complete! 🎉                       ║"
-    echo -e "  ╠═══════════════════════════════════════════════════╣"
-    echo -e "  ║                                                   ║"
-    echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
-    echo -e "  ║                                                   ║"
-    echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
-    echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
-    echo -e "  ║                                                   ║"
-    echo -e "  ╚═══════════════════════════════════════════════════╝"
-    echo -e "${RESET}"
+    clear
+    echo ""
+    echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}     ${GREEN}${BOLD}🎉  Installation Complete!  🎉${RESET}                         ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${CYAN}▶${RESET} ${WHITE}START Ubuntu:${RESET}   ${GREEN}${BOLD}start-${cmd_name}${RESET}$(printf '%*s' $((26 - ${#cmd_name})) '')${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}এখন থেকে শুধু এই command দিলেই চলবে!${RESET}               ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}আর এই tool এ আসতে হবে না।${RESET}                        ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
+    echo ""
     press_enter
 }
 
@@ -1514,12 +1648,17 @@ EOF
 # Version 3: AI Smart Auto-Detect
 # ============================================================
 install_smart() {
+    clear
     show_banner
-    echo -e "  ${BG_GREEN}${WHITE} AI SMART AUTO-DETECT ${RESET}"
-    echo ""
-    print_separator
-    echo ""
-    print_info "Detecting your device specifications..."
+    echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}     ${GREEN}🤖${RESET} ${WHITE}${BOLD}AI SMART AUTO-DETECT${RESET}                                 ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}  ${WHITE}আপনার ডিভাইস স্ক্যান করা হচ্ছে...${RESET}                     ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+    echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
     
     # Get device info
@@ -1527,13 +1666,17 @@ install_smart() {
     local cpu_arch=$(get_cpu_arch)
     local free_storage=$(get_free_storage_mb)
     
-    echo -e "  ${CYAN}Device Information:${RESET}"
-    print_separator
-    echo -e "  ${WHITE}RAM:${RESET}          ${GREEN}${ram_mb} MB${RESET}"
-    echo -e "  ${WHITE}CPU Arch:${RESET}     ${GREEN}${cpu_arch}${RESET}"
-    echo -e "  ${WHITE}Free Storage:${RESET} ${GREEN}${free_storage} MB${RESET}"
-    echo ""
-    print_separator
+    echo -e "  ${CYAN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}     ${CYAN}📊${RESET} ${WHITE}${BOLD}Device Information${RESET}                                    ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}  ${WHITE}💾 RAM:${RESET}           ${GREEN}${BOLD}${ram_mb} MB${RESET}                                ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}  ${WHITE}⚙️  CPU Arch:${RESET}      ${GREEN}${BOLD}${cpu_arch}${RESET}                              ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}  ${WHITE}📱 Free Storage:${RESET}  ${GREEN}${BOLD}${free_storage} MB${RESET}                           ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
     
     # Decision logic
@@ -1593,11 +1736,11 @@ install_smart() {
     fi
     
     echo ""
-    print_separator
-    echo -e "  ${CYAN}Recommendation:${RESET} ${GREEN}${reason}${RESET}"
-    print_separator
+    echo -e "  ${YELLOW}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${YELLOW}║${RESET}  ${YELLOW}🎯${RESET} ${WHITE}${BOLD}Recommendation:${RESET} ${GREEN}${reason}${RESET}$(printf '%*s' $((32 - ${#reason})) '')${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}╚══════════════════════════════════════════════════════════════╝${RESET}"
     echo ""
-    echo -ne "  ${YELLOW}Proceed with recommended installation? [y/N]: ${RESET}"
+    echo -ne "  ${YELLOW}  ❓ ${WHITE}Recommended installation শুরু করবেন? ${RESET}[${GREEN}y${RESET}/${RED}N${RESET}]: "
     read confirm
     
     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -1664,19 +1807,22 @@ EOF
         print_success "Shortcut commands created!"
         echo ""
         
-        echo -e "${GREEN}"
-        echo -e "  ╔═══════════════════════════════════════════════════╗"
-        echo -e "  ║  Installation Complete! 🎉                       ║"
-        echo -e "  ╠═══════════════════════════════════════════════════╣"
-        echo -e "  ║                                                   ║"
-        echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
-        echo -e "  ║  ■ STOP Ubuntu:    stop-${cmd_name}$(printf '%*s' $((23 - ${#cmd_name})) '')║"
-        echo -e "  ║                                                   ║"
-        echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
-        echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
-        echo -e "  ║                                                   ║"
-        echo -e "  ╚═══════════════════════════════════════════════════╝"
-        echo -e "${RESET}"
+        clear
+        echo ""
+        echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}     ${GREEN}${BOLD}🎉  Installation Complete!  🎉${RESET}                         ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${CYAN}▶${RESET} ${WHITE}START:${RESET}  ${GREEN}${BOLD}start-${cmd_name}${RESET}$(printf '%*s' $((33 - ${#cmd_name})) '')${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${RED}■${RESET} ${WHITE}STOP:${RESET}   ${RED}${BOLD}stop-${cmd_name}${RESET}$(printf '%*s' $((34 - ${#cmd_name})) '')${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}এখন থেকে শুধু এই command দিলেই চলবে!${RESET}               ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}আর এই tool এ আসতে হবে না।${RESET}                        ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
+        echo ""
     else
         print_info "Installing Ubuntu ${version_name} via proot-distro..."
         print_separator
@@ -1708,18 +1854,21 @@ EOF
         print_success "Shortcut command created!"
         echo ""
         
-        echo -e "${GREEN}"
-        echo -e "  ╔═══════════════════════════════════════════════════╗"
-        echo -e "  ║  Installation Complete! 🎉                       ║"
-        echo -e "  ╠═══════════════════════════════════════════════════╣"
-        echo -e "  ║                                                   ║"
-        echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
-        echo -e "  ║                                                   ║"
-        echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
-        echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
-        echo -e "  ║                                                   ║"
-        echo -e "  ╚═══════════════════════════════════════════════════╝"
-        echo -e "${RESET}"
+        clear
+        echo ""
+        echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}     ${GREEN}${BOLD}🎉  Installation Complete!  🎉${RESET}                         ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${CYAN}▶${RESET} ${WHITE}START:${RESET}  ${GREEN}${BOLD}start-${cmd_name}${RESET}$(printf '%*s' $((33 - ${#cmd_name})) '')${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}এখন থেকে শুধু এই command দিলেই চলবে!${RESET}               ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}  ${YELLOW}💡${RESET} ${DIM}আর এই tool এ আসতে হবে না।${RESET}                        ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
+        echo ""
     fi
     
     press_enter
@@ -1730,29 +1879,36 @@ EOF
 # ============================================================
 start_ubuntu() {
     show_banner
-    echo -e "  ${BG_GREEN}${WHITE} START UBUNTU ${RESET}"
+    echo -e "  ${YELLOW}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}      ${YELLOW}🚀${RESET} ${WHITE}${BOLD}S T A R T   U B U N T U${RESET}                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}  ${CYAN}💡 TIP:${RESET} ${WHITE}সরাসরি terminal এ এই commands ব্যবহার করুন:${RESET}     ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}     ${GREEN}▶ start-${PERSONALIZED_CMD_NAME}${RESET}$(printf '%*s' $((36 - ${#PERSONALIZED_CMD_NAME})) '')${DIM}(Ubuntu চালু)${RESET}   ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}     ${RED}■ stop-${PERSONALIZED_CMD_NAME}${RESET}$(printf '%*s' $((37 - ${#PERSONALIZED_CMD_NAME})) '')${DIM}(Ubuntu বন্ধ)${RESET}    ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}   ${GREEN}[01]${RESET} ${GREEN}🐧${RESET} ${WHITE}${BOLD}Start via proot-distro (Official)${RESET}               ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}   ${MAGENTA}[02]${RESET} ${MAGENTA}⚡${RESET} ${WHITE}${BOLD}Start via udroid${RESET}                                 ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}   ${RED}[00]${RESET} ${RED}🔙${RESET} ${WHITE}Back to Main Menu${RESET}                                ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}║${RESET}                                                            ${YELLOW}║${RESET}"
+    echo -e "  ${YELLOW}╚══════════════════════════════════════════════════════════════╝${RESET}"
+    show_footer
     echo ""
-    print_separator
-    echo ""
-    echo -e "  ${YELLOW}💡 TIP:${RESET} আপনি সরাসরি terminal এ এই commands ব্যবহার করতে পারেন:"
-    echo -e "     ${GREEN}start-${PERSONALIZED_CMD_NAME}${RESET}    - Ubuntu চালু করতে"
-    echo -e "     ${GREEN}stop-${PERSONALIZED_CMD_NAME}${RESET}     - Ubuntu বন্ধ করতে"
-    echo ""
-    print_separator
-    echo ""
-    echo -e "  ${CYAN}Select start method:${RESET}"
-    echo ""
-    echo -e "  ${GREEN}[1]${RESET} Start via proot-distro (Official)"
-    echo -e "  ${GREEN}[2]${RESET} Start via udroid"
-    echo -e "  ${RED}[0]${RESET} Back to Main Menu"
-    echo ""
-    print_separator
-    echo ""
-    echo -ne "  ${YELLOW}Select option [0-2]: ${RESET}"
+    echo -ne "  ${YELLOW}  👉 Option নির্বাচন করুন ${RESET}[${CYAN}00-02${RESET}]: "
     read start_choice
     
     case $start_choice in
-        1)
+        1|01)
+            clear
+            show_banner
             echo ""
             print_info "Available Ubuntu installations:"
             print_separator
@@ -1760,7 +1916,7 @@ start_ubuntu() {
             echo ""
             print_separator
             echo ""
-            echo -ne "  ${YELLOW}Enter distro name to login (e.g., ubuntu): ${RESET}"
+            echo -ne "  ${YELLOW}  ✏️  Enter distro name to login (e.g., ubuntu): ${RESET}"
             read distro_name
             if [ -n "$distro_name" ]; then
                 print_info "Starting Ubuntu ($distro_name)..."
@@ -1769,7 +1925,9 @@ start_ubuntu() {
                 print_error "No distro name provided."
             fi
             ;;
-        2)
+        2|02)
+            clear
+            show_banner
             echo ""
             print_info "Starting Ubuntu via udroid..."
             print_separator
@@ -1780,7 +1938,7 @@ start_ubuntu() {
                 print_info "Please install using 'Custom Super-Fix Setup' option first."
             fi
             ;;
-        0) return ;;
+        0|00) return ;;
         *)
             print_error "Invalid option."
             ;;
@@ -1793,34 +1951,40 @@ start_ubuntu() {
 # ============================================================
 uninstall_ubuntu() {
     show_banner
-    echo -e "  ${BG_RED}${WHITE} UNINSTALL UBUNTU ${RESET}"
+    echo -e "  ${RED}╔══════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}      ${RED}🗑️ ${RESET} ${WHITE}${BOLD}U N I N S T A L L   U B U N T U${RESET}                   ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}   ${YELLOW}[01]${RESET} ${YELLOW}⚡${RESET} ${WHITE}${BOLD}Uninstall proot-distro Ubuntu${RESET}                   ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}   ${MAGENTA}[02]${RESET} ${MAGENTA}🔧${RESET} ${WHITE}${BOLD}Uninstall udroid Ubuntu${RESET}                         ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}   ${RED}[03]${RESET} ${RED}💣${RESET} ${WHITE}${BOLD}Uninstall ALL (Complete cleanup)${RESET}                ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}╠══════════════════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}   ${CYAN}[00]${RESET} ${CYAN}🔙${RESET} ${WHITE}Back to Main Menu${RESET}                                ${RED}║${RESET}"
+    echo -e "  ${RED}║${RESET}                                                            ${RED}║${RESET}"
+    echo -e "  ${RED}╚══════════════════════════════════════════════════════════════╝${RESET}"
+    show_footer
     echo ""
-    print_separator
-    echo ""
-    echo -e "  ${CYAN}Select uninstall method:${RESET}"
-    echo ""
-    echo -e "  ${GREEN}[1]${RESET} Uninstall proot-distro Ubuntu"
-    echo -e "  ${GREEN}[2]${RESET} Uninstall udroid Ubuntu"
-    echo -e "  ${GREEN}[3]${RESET} Uninstall ALL (Complete cleanup)"
-    echo -e "  ${RED}[0]${RESET} Back to Main Menu"
-    echo ""
-    print_separator
-    echo ""
-    echo -ne "  ${YELLOW}Select option [0-3]: ${RESET}"
+    echo -ne "  ${YELLOW}  👉 Option নির্বাচন করুন ${RESET}[${CYAN}00-03${RESET}]: "
     read uninstall_choice
     
     case $uninstall_choice in
-        1)
+        1|01)
             echo ""
             print_info "Available Ubuntu installations:"
             print_separator
             proot-distro list 2>/dev/null | grep -i ubuntu
             echo ""
-            echo -ne "  ${YELLOW}Enter distro name to remove (e.g., ubuntu): ${RESET}"
+            echo -ne "  ${YELLOW}  ✏️  Enter distro name to remove (e.g., ubuntu): ${RESET}"
             read distro_name
             if [ -n "$distro_name" ]; then
                 echo ""
-                echo -ne "  ${RED}Are you sure you want to remove '$distro_name'? [y/N]: ${RESET}"
+                echo -ne "  ${RED}  ⚠️  Are you sure you want to remove '$distro_name'? [y/N]: ${RESET}"
                 read confirm
                 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
                     proot-distro remove "$distro_name"
@@ -1836,9 +2000,9 @@ uninstall_ubuntu() {
                 print_error "No distro name provided."
             fi
             ;;
-        2)
+        2|02)
             echo ""
-            echo -ne "  ${RED}Are you sure you want to remove udroid Ubuntu? [y/N]: ${RESET}"
+            echo -ne "  ${RED}  ⚠️  Are you sure you want to remove udroid Ubuntu? [y/N]: ${RESET}"
             read confirm
             if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
                 if command -v udroid &> /dev/null; then
@@ -1854,10 +2018,10 @@ uninstall_ubuntu() {
                 print_info "Uninstall cancelled."
             fi
             ;;
-        3)
+        3|03)
             echo ""
             print_warning "This will remove ALL Ubuntu installations!"
-            echo -ne "  ${RED}Are you absolutely sure? [y/N]: ${RESET}"
+            echo -ne "  ${RED}  💣 Are you absolutely sure? [y/N]: ${RESET}"
             read confirm
             if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
                 echo ""
@@ -1885,7 +2049,7 @@ uninstall_ubuntu() {
                 print_info "Uninstall cancelled."
             fi
             ;;
-        0) return ;;
+        0|00) return ;;
         *)
             print_error "Invalid option."
             ;;
@@ -1899,33 +2063,36 @@ uninstall_ubuntu() {
 install_menu() {
     while true; do
         show_banner
-        echo -e "  ${BG_BLUE}${WHITE} INSTALL UBUNTU ${RESET}"
+        echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}      ${GREEN}📦${RESET} ${WHITE}${BOLD}I N S T A L L   U B U N T U${RESET}                        ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}   ${MAGENTA}[01]${RESET} ${MAGENTA}🛠️ ${RESET} ${WHITE}${BOLD}Custom Super-Fix Setup${RESET}                          ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}        ${DIM}Quick setup with X11 and audio support${RESET}              ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}   ${BLUE}[02]${RESET} ${BLUE}📦${RESET} ${WHITE}${BOLD}Official Repo Version${RESET}                           ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}        ${DIM}Choose from Ubuntu 20.04, 22.04, or 24.04${RESET}          ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}   ${CYAN}[03]${RESET} ${CYAN}🤖${RESET} ${WHITE}${BOLD}AI Smart Auto-Detect${RESET}                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}        ${DIM}Automatically selects best version for device${RESET}       ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}   ${RED}[00]${RESET} ${RED}🔙${RESET} ${WHITE}Back to Main Menu${RESET}                                ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+        echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
+        show_footer
         echo ""
-        print_separator
-        echo ""
-        echo -e "  ${CYAN}Choose installation method:${RESET}"
-        echo ""
-        echo -e "  ${GREEN}[1]${RESET} ${MAGENTA}Custom Super-Fix Setup${RESET}"
-        echo -e "      ${DIM}Quick setup with X11 and audio support${RESET}"
-        echo ""
-        echo -e "  ${GREEN}[2]${RESET} ${MAGENTA}Official Repo Version${RESET}"
-        echo -e "      ${DIM}Choose from Ubuntu 20.04, 22.04, or 24.04${RESET}"
-        echo ""
-        echo -e "  ${GREEN}[3]${RESET} ${MAGENTA}AI Smart Auto-Detect${RESET}"
-        echo -e "      ${DIM}Automatically selects best version for your device${RESET}"
-        echo ""
-        echo -e "  ${RED}[0]${RESET} Back to Main Menu"
-        echo ""
-        print_separator
-        echo ""
-        echo -ne "  ${YELLOW}Select option [0-3]: ${RESET}"
+        echo -ne "  ${YELLOW}  👉 Option নির্বাচন করুন ${RESET}[${CYAN}00-03${RESET}]: "
         read install_choice
         
         case $install_choice in
-            1) install_udroid ;;
-            2) install_official ;;
-            3) install_smart ;;
-            0) return ;;
+            1|01) install_udroid ;;
+            2|02) install_official ;;
+            3|03) install_smart ;;
+            0|00) return ;;
             *) print_error "Invalid option." ; sleep 1 ;;
         esac
     done
@@ -1937,34 +2104,44 @@ install_menu() {
 main_menu() {
     while true; do
         show_banner
-        echo -e "  ${CYAN}╔════════════════════════════════════════╗${RESET}"
-        echo -e "  ${CYAN}║${RESET}        ${WHITE}${BOLD}M A I N   M E N U${RESET}             ${CYAN}║${RESET}"
-        echo -e "  ${CYAN}╚════════════════════════════════════════╝${RESET}"
+        echo -e "  ${CYAN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}          ${WHITE}${BOLD}M  A  I  N     M  E  N  U${RESET}                       ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}   ${GREEN}[01]${RESET} ${GREEN}📦${RESET} ${WHITE}${BOLD}Install Ubuntu${RESET}                                  ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}        ${DIM}Install Ubuntu with multiple methods${RESET}                ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}   ${YELLOW}[02]${RESET} ${YELLOW}🚀${RESET} ${WHITE}${BOLD}Start Ubuntu${RESET}                                    ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}        ${DIM}Launch installed Ubuntu environment${RESET}                 ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}   ${RED}[03]${RESET} ${RED}🗑️ ${RESET} ${WHITE}${BOLD}Uninstall Ubuntu${RESET}                                 ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}        ${DIM}Remove Ubuntu installations${RESET}                        ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}╠══════════════════════════════════════════════════════════════╣${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}   ${MAGENTA}[00]${RESET} ${MAGENTA}🚪${RESET} ${WHITE}Exit${RESET}                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}║${RESET}                                                            ${CYAN}║${RESET}"
+        echo -e "  ${CYAN}╚══════════════════════════════════════════════════════════════╝${RESET}"
+        show_footer
         echo ""
-        echo -e "  ${GREEN}[1]${RESET} ${WHITE}Install Ubuntu${RESET}"
-        echo -e "      ${DIM}Install Ubuntu with multiple methods${RESET}"
-        echo ""
-        echo -e "  ${GREEN}[2]${RESET} ${WHITE}Start Ubuntu${RESET}"
-        echo -e "      ${DIM}Launch installed Ubuntu environment${RESET}"
-        echo ""
-        echo -e "  ${GREEN}[3]${RESET} ${WHITE}Uninstall Ubuntu${RESET}"
-        echo -e "      ${DIM}Remove Ubuntu installations${RESET}"
-        echo ""
-        echo -e "  ${RED}[0]${RESET} ${WHITE}Exit${RESET}"
-        echo ""
-        print_separator
-        echo ""
-        echo -ne "  ${YELLOW}Select option [0-3]: ${RESET}"
+        echo -ne "  ${YELLOW}  👉 Option নির্বাচন করুন ${RESET}[${CYAN}00-03${RESET}]: "
         read main_choice
         
         case $main_choice in
-            1) install_menu ;;
-            2) start_ubuntu ;;
-            3) uninstall_ubuntu ;;
-            0)
+            1|01) install_menu ;;
+            2|02) start_ubuntu ;;
+            3|03) uninstall_ubuntu ;;
+            0|00)
+                clear
                 echo ""
-                print_info "Thank you for using Termux Ubuntu Installer!"
-                print_info "Goodbye!"
+                echo -e "  ${GREEN}╔══════════════════════════════════════════════════════════════╗${RESET}"
+                echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+                echo -e "  ${GREEN}║${RESET}   ${GREEN}✅${RESET} ${WHITE}${BOLD}Thank you for using Termux Ubuntu Installer!${RESET}          ${GREEN}║${RESET}"
+                echo -e "  ${GREEN}║${RESET}   ${CYAN}👋${RESET} ${WHITE}Goodbye! Happy Linux-ing!${RESET}                              ${GREEN}║${RESET}"
+                echo -e "  ${GREEN}║${RESET}                                                            ${GREEN}║${RESET}"
+                echo -e "  ${GREEN}╚══════════════════════════════════════════════════════════════╝${RESET}"
                 echo ""
                 exit 0
                 ;;
