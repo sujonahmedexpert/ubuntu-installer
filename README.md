@@ -1,1 +1,279 @@
-# ubuntu-installer
+# Ubuntu Installer for Termux
+
+```
+  ██╗   ██╗██████╗ ██╗   ██╗███╗   ██╗████████╗██╗   ██╗
+  ██║   ██║██╔══██╗██║   ██║████╗  ██║╚══██╔══╝██║   ██║
+  ██║   ██║██████╔╝██║   ██║██╔██╗ ██║   ██║   ██║   ██║
+  ██║   ██║██╔══██╗██║   ██║██║╚██╗██║   ██║   ██║   ██║
+  ╚██████╔╝██████╔╝╚██████╔╝██║ ╚████║   ██║   ╚██████╔╝
+   ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝    ╚═════╝
+          ╦╔╗╔╔═╗╔╦╗╔═╗╦  ╦  ╔═╗╦═╗
+          ║║║║╚═╗ ║ ╠═╣║  ║  ║╣ ╠╦╝
+          ╩╝╚╝╚═╝ ╩ ╩ ╩╩═╝╩═╝╚═╝╩╚═
+```
+
+> **Termux Ubuntu Installer Tool v2.0** - A colorful, menu-based Ubuntu installer for Android/Termux users.
+
+---
+
+## Description / বিবরণ
+
+**English:**  
+Ubuntu Installer is a powerful, easy-to-use Bash tool that installs Ubuntu Linux on your Android device via Termux. It provides a beautiful colorful menu interface with multiple installation methods, smart device detection, and full management capabilities (install, start, uninstall).
+
+**বাংলা:**  
+Ubuntu Installer হলো একটি শক্তিশালী ও সহজে ব্যবহারযোগ্য Bash টুল যা আপনার Android ডিভাইসে Termux-এর মাধ্যমে Ubuntu Linux ইনস্টল করে। এটি একটি সুন্দর রঙিন মেনু ইন্টারফেস প্রদান করে যার মধ্যে একাধিক ইনস্টলেশন পদ্ধতি, স্মার্ট ডিভাইস ডিটেকশন, এবং সম্পূর্ণ ব্যবস্থাপনা সুবিধা (ইনস্টল, স্টার্ট, আনইনস্টল) রয়েছে।
+
+---
+
+## Features / বৈশিষ্ট্যসমূহ
+
+### 3 Installation Methods / ৩টি ইনস্টল পদ্ধতি
+
+| # | Method | Description |
+|---|--------|-------------|
+| 1 | **Custom Super-Fix Setup** | Quick setup with X11 display server and PulseAudio support via udroid. Best for GUI desktop experience. |
+| 2 | **Official Repo Version** | Install from official proot-distro repository. Choose from Ubuntu 20.04, 22.04, or 24.04 LTS. |
+| 3 | **AI Smart Auto-Detect** | Automatically analyzes your device (RAM, CPU, storage) and recommends the best Ubuntu version. |
+
+### Other Features / অন্যান্য বৈশিষ্ট্য
+
+- Colorful terminal UI with ASCII art banner
+- Start Ubuntu directly from the menu
+- Uninstall Ubuntu (individual or all installations)
+- Device specification detection (RAM, CPU, Storage)
+- Automatic stuck process fixing
+- Support for ARM64 and other architectures
+
+---
+
+## Requirements / প্রয়োজনীয়তা
+
+| Requirement | Details |
+|-------------|---------|
+| **Device** | Android phone/tablet |
+| **App** | [Termux](https://f-droid.org/en/packages/com.termux/) (F-Droid version recommended) |
+| **Internet** | Active internet connection required for downloading Ubuntu |
+| **Storage** | Minimum 2GB free space recommended |
+| **Android** | Android 7.0 or higher |
+
+---
+
+## Installation / ইনস্টলেশন
+
+### One Command Install / এক কমান্ডে ইনস্টল
+
+Open Termux and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sujonahmedexpert/ubuntu-installer/main/install.sh | bash
+```
+
+**বাংলা:** Termux ওপেন করুন এবং উপরের কমান্ডটি পেস্ট করে Enter চাপুন। টুলটি স্বয়ংক্রিয়ভাবে ডাউনলোড ও ইনস্টল হয়ে যাবে।
+
+### Manual Install / ম্যানুয়াল ইনস্টল
+
+```bash
+pkg update && pkg upgrade -y
+curl -fsSL https://raw.githubusercontent.com/sujonahmedexpert/ubuntu-installer/main/ubuntu-installer.sh -o $PREFIX/bin/ubuntu-installer
+chmod +x $PREFIX/bin/ubuntu-installer
+```
+
+---
+
+## Usage / ব্যবহার
+
+After installation, run the tool:
+
+```bash
+ubuntu-installer
+```
+
+**বাংলা:** ইনস্টল করার পরে, `ubuntu-installer` লিখে Enter চাপুন। একটি সুন্দর মেনু আসবে যেখান থেকে আপনি সব কিছু করতে পারবেন।
+
+You will see the main menu with these options:
+1. **Install Ubuntu** - Install Ubuntu with your preferred method
+2. **Start Ubuntu** - Launch an installed Ubuntu environment
+3. **Uninstall Ubuntu** - Remove Ubuntu installations
+0. **Exit** - Exit the tool
+
+---
+
+## How to Install Ubuntu / উবুন্টু কিভাবে ইনস্টল করবেন
+
+### Method 1: Custom Super-Fix Setup / কাস্টম সুপার-ফিক্স সেটআপ
+
+**English:**
+1. Run `ubuntu-installer`
+2. Select option `[1] Install Ubuntu`
+3. Select option `[1] Custom Super-Fix Setup`
+4. Confirm with `y`
+5. Wait for automatic installation (updates packages, installs X11, proot, PulseAudio, and udroid)
+6. Done! Start Ubuntu from the main menu.
+
+**বাংলা:**
+1. `ubuntu-installer` চালান
+2. `[1] Install Ubuntu` সিলেক্ট করুন
+3. `[1] Custom Super-Fix Setup` সিলেক্ট করুন
+4. `y` দিয়ে কনফার্ম করুন
+5. স্বয়ংক্রিয় ইনস্টলেশন সম্পন্ন হওয়ার জন্য অপেক্ষা করুন
+6. সম্পন্ন! মেইন মেনু থেকে Ubuntu স্টার্ট করুন।
+
+---
+
+### Method 2: Official Repo Version / অফিসিয়াল রিপো ভার্সন
+
+**English:**
+1. Run `ubuntu-installer`
+2. Select option `[1] Install Ubuntu`
+3. Select option `[2] Official Repo Version`
+4. Choose your Ubuntu version:
+   - `[1]` Ubuntu 20.04 LTS (Focal Fossa) - Lightweight
+   - `[2]` Ubuntu 22.04 LTS (Jammy Jellyfish) - Stable
+   - `[3]` Ubuntu 24.04 LTS (Noble Numbat) - Latest
+5. Wait for download and installation
+6. Done! Start Ubuntu from the main menu.
+
+**বাংলা:**
+1. `ubuntu-installer` চালান
+2. `[1] Install Ubuntu` সিলেক্ট করুন
+3. `[2] Official Repo Version` সিলেক্ট করুন
+4. আপনার পছন্দের Ubuntu ভার্সন বাছুন:
+   - `[1]` Ubuntu 20.04 LTS - হালকা, কম RAM-এর জন্য ভালো
+   - `[2]` Ubuntu 22.04 LTS - স্থিতিশীল, বেশিরভাগ ডিভাইসের জন্য
+   - `[3]` Ubuntu 24.04 LTS - সর্বশেষ, ভালো ডিভাইসের জন্য
+5. ডাউনলোড ও ইনস্টলেশন সম্পন্ন হওয়ার অপেক্ষা করুন
+6. সম্পন্ন! মেইন মেনু থেকে Ubuntu স্টার্ট করুন।
+
+---
+
+### Method 3: AI Smart Auto-Detect / এআই স্মার্ট অটো-ডিটেক্ট
+
+**English:**
+1. Run `ubuntu-installer`
+2. Select option `[1] Install Ubuntu`
+3. Select option `[3] AI Smart Auto-Detect`
+4. The tool will automatically detect your device's RAM, CPU, and storage
+5. It will recommend the best Ubuntu version for your device
+6. Confirm with `y` to proceed
+7. Done! The best version is installed automatically.
+
+**বাংলা:**
+1. `ubuntu-installer` চালান
+2. `[1] Install Ubuntu` সিলেক্ট করুন
+3. `[3] AI Smart Auto-Detect` সিলেক্ট করুন
+4. টুলটি স্বয়ংক্রিয়ভাবে আপনার ডিভাইসের RAM, CPU, এবং স্টোরেজ ডিটেক্ট করবে
+5. আপনার ডিভাইসের জন্য সেরা Ubuntu ভার্সন রিকমেন্ড করবে
+6. `y` দিয়ে কনফার্ম করুন
+7. সম্পন্ন! সেরা ভার্সন স্বয়ংক্রিয়ভাবে ইনস্টল হয়ে যাবে।
+
+---
+
+## Starting Ubuntu / উবুন্টু চালু করা
+
+After installation:
+1. Run `ubuntu-installer`
+2. Select `[2] Start Ubuntu`
+3. Choose start method:
+   - `[1]` Start via proot-distro (for Official Repo installs)
+   - `[2]` Start via udroid (for Custom Super-Fix installs)
+
+**বাংলা:**
+ইনস্টলের পরে `ubuntu-installer` চালান এবং `[2] Start Ubuntu` সিলেক্ট করুন।
+
+---
+
+## Uninstall / আনইনস্টল
+
+### Uninstall Ubuntu / উবুন্টু আনইনস্টল
+
+1. Run `ubuntu-installer`
+2. Select `[3] Uninstall Ubuntu`
+3. Choose what to remove:
+   - `[1]` Uninstall proot-distro Ubuntu
+   - `[2]` Uninstall udroid Ubuntu
+   - `[3]` Uninstall ALL (Complete cleanup)
+
+### Uninstall the Tool / টুল আনইনস্টল
+
+```bash
+rm -f $PREFIX/bin/ubuntu-installer
+```
+
+**বাংলা:** উপরের কমান্ডটি চালালে টুলটি আনইনস্টল হয়ে যাবে।
+
+---
+
+## Screenshots / স্ক্রিনশট
+
+The tool features a beautiful colorful terminal interface:
+- ASCII art banner
+- Color-coded menu options
+- Progress indicators with checkmarks
+- Device information display
+
+---
+
+## Troubleshooting / সমস্যা সমাধান
+
+| Problem | Solution |
+|---------|----------|
+| `Permission denied` | Run `chmod +x $PREFIX/bin/ubuntu-installer` |
+| `curl: not found` | Run `pkg install curl` |
+| `proot-distro: not found` | Run `pkg install proot-distro` |
+| Screen stuck | Close and reopen Termux |
+| X11 issues | The tool automatically fixes stuck X11 processes |
+
+---
+
+## Author / লেখক
+
+**sujonahmedexpert**
+
+- GitHub: [github.com/sujonahmedexpert](https://github.com/sujonahmedexpert)
+
+---
+
+## License / লাইসেন্স
+
+This project is licensed under the **MIT License**.
+
+```
+MIT License
+
+Copyright (c) 2024 sujonahmedexpert
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## Contributing / অবদান
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
+**বাংলা:** যেকোনো অবদান স্বাগত! Issue খুলুন অথবা Pull Request পাঠান।
+
+---
+
+## Support / সাপোর্ট
+
+If you find this tool helpful, please give it a star on GitHub!
+
+**বাংলা:** যদি এই টুলটি আপনার কাজে লাগে, তাহলে GitHub-এ একটি star দিন!
