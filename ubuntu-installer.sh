@@ -1092,6 +1092,122 @@ download_with_progress() {
 }
 
 # ============================================================
+# Pip-Style Progress Bar
+# Shows download/install progress like pip does:
+#   Downloading package-name.tar.gz (3.3 MB)
+#      ━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 1.6 MB/s 0:00:01
+#   Installing collected packages: package-name
+# ============================================================
+pip_style_progress() {
+    local cmd="$1"
+    local package_name="$2"
+    local estimated_size_mb="$3"
+    local bar_width=20
+    local start_time=$(date +%s)
+
+    # Print the "Downloading" header line
+    echo -e "  Downloading ${package_name} (${estimated_size_mb} MB)"
+
+    # Run the command in the background
+    eval "$cmd" >/dev/null 2>&1 &
+    local cmd_pid=$!
+
+    local progress=0
+    local speed="0.0"
+    local elapsed_seconds=0
+
+    # Animate progress bar while command runs
+    while kill -0 "$cmd_pid" 2>/dev/null; do
+        local current_time=$(date +%s)
+        elapsed_seconds=$((current_time - start_time))
+
+        # Simulate progress based on elapsed time and estimated size
+        # Assume average speed ~1.5 MB/s for estimation
+        if [ "$elapsed_seconds" -gt 0 ]; then
+            local estimated_downloaded=$(echo "$elapsed_seconds 1.5" | awk '{printf "%.1f", $1 * $2}')
+            local estimated_downloaded_int=$(echo "$estimated_downloaded" | awk '{printf "%d", $1}')
+            local estimated_size_int=$(echo "$estimated_size_mb" | awk '{printf "%d", $1}')
+
+            if [ "$estimated_downloaded_int" -ge "$estimated_size_int" ]; then
+                # Cap at 95% until command actually finishes
+                progress=95
+                estimated_downloaded=$(echo "$estimated_size_mb" | awk '{printf "%.1f", $1 * 0.95}')
+            else
+                progress=$((estimated_downloaded_int * 100 / estimated_size_int))
+            fi
+
+            speed=$(echo "$estimated_downloaded $elapsed_seconds" | awk '{if($2>0) printf "%.1f", $1/$2; else printf "0.0"}')
+        fi
+
+        # Calculate filled/unfilled bar portions
+        local filled=$((progress * bar_width / 100))
+        local unfilled=$((bar_width - filled))
+
+        # Build the progress bar string with green filled and grey unfilled
+        local bar_filled=""
+        local bar_unfilled=""
+        local i=0
+        while [ $i -lt $filled ]; do
+            bar_filled="${bar_filled}━"
+            i=$((i + 1))
+        done
+        i=0
+        while [ $i -lt $unfilled ]; do
+            bar_unfilled="${bar_unfilled}━"
+            i=$((i + 1))
+        done
+
+        # Format elapsed time as M:SS
+        local mins=$((elapsed_seconds / 60))
+        local secs=$((elapsed_seconds % 60))
+        local time_str=$(printf "%d:%02d:%02d" 0 $mins $secs)
+
+        # Current downloaded size estimation
+        local current_mb=$(echo "$estimated_size_mb $progress" | awk '{printf "%.1f", $1 * $2 / 100}')
+
+        # Print the progress bar (pip style)
+        printf "\r   \033[1;32m%s\033[0m\033[2m%s\033[0m %s/%s MB %s MB/s %s" \
+            "$bar_filled" "$bar_unfilled" "$current_mb" "$estimated_size_mb" "$speed" "$time_str"
+
+        sleep 0.5
+    done
+
+    # Wait for the command to finish and get exit code
+    wait "$cmd_pid"
+    local exit_code=$?
+
+    # Show completed progress bar (100%)
+    local end_time=$(date +%s)
+    elapsed_seconds=$((end_time - start_time))
+    local mins=$((elapsed_seconds / 60))
+    local secs=$((elapsed_seconds % 60))
+    local time_str=$(printf "%d:%02d:%02d" 0 $mins $secs)
+
+    if [ "$elapsed_seconds" -gt 0 ]; then
+        speed=$(echo "$estimated_size_mb $elapsed_seconds" | awk '{if($2>0) printf "%.1f", $1/$2; else printf "0.0"}')
+    else
+        speed="0.0"
+    fi
+
+    # Full bar (all green)
+    local full_bar=""
+    local i=0
+    while [ $i -lt $bar_width ]; do
+        full_bar="${full_bar}━"
+        i=$((i + 1))
+    done
+
+    printf "\r   \033[1;32m%s\033[0m %s/%s MB %s MB/s %s\n" \
+        "$full_bar" "$estimated_size_mb" "$estimated_size_mb" "$speed" "$time_str"
+
+    # Print the "Installing" footer line
+    echo -e "  Installing collected packages: ${package_name}"
+    echo ""
+
+    return $exit_code
+}
+
+# ============================================================
 # Show Fix Status Summary
 # ============================================================
 show_fix_status() {
@@ -1161,10 +1277,9 @@ install_udroid() {
     fi
     
     echo ""
-    show_download_info 50 "Termux Packages Update"
     print_info "Step 1/4: Updating and upgrading packages..."
     print_separator
-    run_with_fix "pkg update && pkg upgrade -y"
+    pip_style_progress "pkg update && pkg upgrade -y" "termux-packages" "50"
     if [ $? -ne 0 ]; then
         print_error "Failed to update packages."
         press_enter
@@ -1173,11 +1288,9 @@ install_udroid() {
     print_success "Packages updated successfully."
     echo ""
     
-    show_download_info 200 "X11 Display Server"
     print_info "Step 2/4: Installing x11-repo and termux-x11-nightly..."
     print_separator
-    run_with_fix "pkg install x11-repo -y"
-    run_with_fix "pkg install termux-x11-nightly -y"
+    pip_style_progress "pkg install x11-repo -y && pkg install termux-x11-nightly -y" "termux-x11-nightly" "200"
     if [ $? -ne 0 ]; then
         print_error "Failed to install x11 packages."
         press_enter
@@ -1186,10 +1299,9 @@ install_udroid() {
     print_success "X11 packages installed successfully."
     echo ""
     
-    show_download_info 80 "PRoot + PulseAudio"
     print_info "Step 3/4: Installing proot and pulseaudio..."
     print_separator
-    run_with_fix "pkg install proot pulseaudio -y"
+    pip_style_progress "pkg install proot pulseaudio -y" "proot-pulseaudio" "80"
     if [ $? -ne 0 ]; then
         print_error "Failed to install proot/pulseaudio."
         press_enter
@@ -1198,10 +1310,9 @@ install_udroid() {
     print_success "Proot and PulseAudio installed successfully."
     echo ""
     
-    show_download_info 1500 "Ubuntu Rootfs (udroid)"
     print_info "Step 4/4: Running udroid installer..."
     print_separator
-    . <(curl -Ls https://bit.ly/udroid-installer)
+    pip_style_progress ". <(curl -Ls https://bit.ly/udroid-installer)" "ubuntu-rootfs-udroid" "1500"
     if [ $? -ne 0 ]; then
         print_error "udroid installer failed."
         press_enter
@@ -1311,7 +1422,7 @@ install_official() {
     
     # Install proot-distro if not installed
     print_info "Ensuring proot-distro is installed..."
-    run_with_fix "pkg update -y && pkg install proot-distro -y"
+    pip_style_progress "pkg update -y && pkg install proot-distro -y" "proot-distro" "30"
     if [ $? -ne 0 ]; then
         print_error "Failed to install proot-distro."
         press_enter
@@ -1321,11 +1432,10 @@ install_official() {
     echo ""
     
     # Install the selected Ubuntu version
-    show_download_info 1200 "Ubuntu ${version_name} Rootfs"
     print_info "Downloading and installing Ubuntu ${version_name}..."
     print_info "This may take a while depending on your internet speed."
     echo ""
-    proot-distro install "$ubuntu_version"
+    pip_style_progress "proot-distro install \"$ubuntu_version\"" "ubuntu-rootfs-${ubuntu_version}" "1200"
     if [ $? -ne 0 ]; then
         print_error "Failed to install Ubuntu ${version_name}."
         print_warning "The version might already be installed or an error occurred."
@@ -1466,12 +1576,12 @@ install_smart() {
         print_separator
         echo ""
         
-        run_with_fix "pkg update && pkg upgrade -y"
-        run_with_fix "pkg install x11-repo -y"
-        run_with_fix "pkg install termux-x11-nightly -y"
-        run_with_fix "pkg install proot pulseaudio -y"
+        pip_style_progress "pkg update && pkg upgrade -y" "termux-packages" "50"
+        pip_style_progress "pkg install x11-repo -y" "x11-repo" "20"
+        pip_style_progress "pkg install termux-x11-nightly -y" "termux-x11-nightly" "180"
+        pip_style_progress "pkg install proot pulseaudio -y" "proot-pulseaudio" "80"
         
-        . <(curl -Ls https://bit.ly/udroid-installer)
+        pip_style_progress ". <(curl -Ls https://bit.ly/udroid-installer)" "ubuntu-rootfs-udroid" "1500"
         
         # Fix stuck processes
         killall -9 termux-x11 2>/dev/null
@@ -1532,8 +1642,8 @@ EOF
         print_separator
         echo ""
         
-        run_with_fix "pkg update -y && pkg install proot-distro -y"
-        proot-distro install "$ubuntu_version"
+        pip_style_progress "pkg update -y && pkg install proot-distro -y" "proot-distro" "30"
+        pip_style_progress "proot-distro install \"$ubuntu_version\"" "ubuntu-rootfs-${ubuntu_version}" "1200"
         
         if [ $? -ne 0 ]; then
             print_error "Installation failed."
