@@ -1224,6 +1224,37 @@ show_fix_status() {
 
 
 # ============================================================
+# Ask User for Personalized Command Name
+# ============================================================
+ask_user_command_name() {
+    echo ""
+    echo -e "  ${CYAN}╔═══════════════════════════════════════════════════╗${RESET}"
+    echo -e "  ${CYAN}║${RESET}  ${WHITE}${BOLD}Welcome! আপনার নাম দিন${RESET}                          ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}╠═══════════════════════════════════════════════════╣${RESET}"
+    echo -e "  ${CYAN}║${RESET}  আপনার নাম অনুযায়ী command তৈরি হবে।            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}  উদাহরণ: নাম 'sujon' হলে command হবে:            ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}║${RESET}    ${GREEN}start-sujon${RESET} / ${GREEN}stop-sujon${RESET}                      ${CYAN}║${RESET}"
+    echo -e "  ${CYAN}╚═══════════════════════════════════════════════════╝${RESET}"
+    echo ""
+    echo -ne "  ${YELLOW}আপনার নাম লিখুন: ${RESET}"
+    read user_cmd_name
+
+    # Remove spaces and special characters, convert to lowercase
+    user_cmd_name=$(echo "$user_cmd_name" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-')
+
+    if [ -z "$user_cmd_name" ]; then
+        user_cmd_name="ubuntu"
+        print_warning "কোনো নাম দেওয়া হয়নি, ডিফল্ট 'ubuntu' ব্যবহার হবে।"
+    else
+        print_success "স্বাগতম, ${GREEN}${user_cmd_name}${RESET}! আপনার command হবে: ${GREEN}start-${user_cmd_name}${RESET}"
+    fi
+    echo ""
+
+    # Set global variable for use throughout the session
+    PERSONALIZED_CMD_NAME="$user_cmd_name"
+}
+
+# ============================================================
 # Check if running in Termux
 # ============================================================
 check_termux() {
@@ -1334,9 +1365,12 @@ install_udroid() {
     print_success "Stuck processes fixed."
     echo ""
     
-    # Create start-ubuntu shortcut command
+    # Use personalized command name from startup
+    local cmd_name="$PERSONALIZED_CMD_NAME"
+    
+    # Create start shortcut command
     print_info "Creating shortcut commands..."
-    cat > "$PREFIX/bin/start-ubuntu" << 'EOF'
+    cat > "$PREFIX/bin/start-${cmd_name}" << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 killall -9 termux-x11 2>/dev/null
 rm -rf /tmp/.X11-unix 2>/dev/null
@@ -1349,17 +1383,17 @@ udroid login jammy:xfce4
 export DISPLAY=:1
 startxfce4 &
 EOF
-    chmod +x "$PREFIX/bin/start-ubuntu"
+    chmod +x "$PREFIX/bin/start-${cmd_name}"
     
-    # Create stop-ubuntu shortcut command
-    cat > "$PREFIX/bin/stop-ubuntu" << 'EOF'
+    # Create stop shortcut command
+    cat > "$PREFIX/bin/stop-${cmd_name}" << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 killall -9 termux-x11 2>/dev/null
 killall -9 pulseaudio 2>/dev/null
 rm -rf /tmp/.X11-unix 2>/dev/null
 rm -rf /tmp/.X0-lock 2>/dev/null
 EOF
-    chmod +x "$PREFIX/bin/stop-ubuntu"
+    chmod +x "$PREFIX/bin/stop-${cmd_name}"
     
     print_success "Shortcut commands created!"
     echo ""
@@ -1369,8 +1403,8 @@ EOF
     echo -e "  ║  Installation Complete! 🎉                       ║"
     echo -e "  ╠═══════════════════════════════════════════════════╣"
     echo -e "  ║                                                   ║"
-    echo -e "  ║  ▶ START Ubuntu:   start-ubuntu                  ║"
-    echo -e "  ║  ■ STOP Ubuntu:    stop-ubuntu                   ║"
+    echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
+    echo -e "  ║  ■ STOP Ubuntu:    stop-${cmd_name}$(printf '%*s' $((23 - ${#cmd_name})) '')║"
     echo -e "  ║                                                   ║"
     echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
     echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
@@ -1447,13 +1481,16 @@ install_official() {
     print_success "Ubuntu ${version_name} installed successfully!"
     echo ""
     
-    # Create start-ubuntu-official shortcut command
+    # Use personalized command name from startup
+    local cmd_name="$PERSONALIZED_CMD_NAME"
+    
+    # Create start shortcut command
     print_info "Creating shortcut command..."
-    cat > "$PREFIX/bin/start-ubuntu-official" << EOF
+    cat > "$PREFIX/bin/start-${cmd_name}" << EOF
 #!/data/data/com.termux/files/usr/bin/bash
 proot-distro login ${ubuntu_version}
 EOF
-    chmod +x "$PREFIX/bin/start-ubuntu-official"
+    chmod +x "$PREFIX/bin/start-${cmd_name}"
     
     print_success "Shortcut command created!"
     echo ""
@@ -1463,7 +1500,7 @@ EOF
     echo -e "  ║  Installation Complete! 🎉                       ║"
     echo -e "  ╠═══════════════════════════════════════════════════╣"
     echo -e "  ║                                                   ║"
-    echo -e "  ║  ▶ START Ubuntu:   start-ubuntu-official          ║"
+    echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
     echo -e "  ║                                                   ║"
     echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
     echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
@@ -1594,9 +1631,12 @@ install_smart() {
         print_success "Ubuntu installed successfully via udroid!"
         echo ""
         
-        # Create start-ubuntu shortcut command (same as option 1)
+        # Use personalized command name from startup
+        local cmd_name="$PERSONALIZED_CMD_NAME"
+        
+        # Create start shortcut command
         print_info "Creating shortcut commands..."
-        cat > "$PREFIX/bin/start-ubuntu" << 'EOF'
+        cat > "$PREFIX/bin/start-${cmd_name}" << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 killall -9 termux-x11 2>/dev/null
 rm -rf /tmp/.X11-unix 2>/dev/null
@@ -1609,17 +1649,17 @@ udroid login jammy:xfce4
 export DISPLAY=:1
 startxfce4 &
 EOF
-        chmod +x "$PREFIX/bin/start-ubuntu"
+        chmod +x "$PREFIX/bin/start-${cmd_name}"
         
-        # Create stop-ubuntu shortcut command
-        cat > "$PREFIX/bin/stop-ubuntu" << 'EOF'
+        # Create stop shortcut command
+        cat > "$PREFIX/bin/stop-${cmd_name}" << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 killall -9 termux-x11 2>/dev/null
 killall -9 pulseaudio 2>/dev/null
 rm -rf /tmp/.X11-unix 2>/dev/null
 rm -rf /tmp/.X0-lock 2>/dev/null
 EOF
-        chmod +x "$PREFIX/bin/stop-ubuntu"
+        chmod +x "$PREFIX/bin/stop-${cmd_name}"
         
         print_success "Shortcut commands created!"
         echo ""
@@ -1629,8 +1669,8 @@ EOF
         echo -e "  ║  Installation Complete! 🎉                       ║"
         echo -e "  ╠═══════════════════════════════════════════════════╣"
         echo -e "  ║                                                   ║"
-        echo -e "  ║  ▶ START Ubuntu:   start-ubuntu                  ║"
-        echo -e "  ║  ■ STOP Ubuntu:    stop-ubuntu                   ║"
+        echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
+        echo -e "  ║  ■ STOP Ubuntu:    stop-${cmd_name}$(printf '%*s' $((23 - ${#cmd_name})) '')║"
         echo -e "  ║                                                   ║"
         echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
         echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
@@ -1654,13 +1694,16 @@ EOF
         print_success "Ubuntu ${version_name} installed successfully!"
         echo ""
         
-        # Create start-ubuntu-smart shortcut command
+        # Use personalized command name from startup
+        local cmd_name="$PERSONALIZED_CMD_NAME"
+        
+        # Create start shortcut command
         print_info "Creating shortcut command..."
-        cat > "$PREFIX/bin/start-ubuntu-smart" << EOF
+        cat > "$PREFIX/bin/start-${cmd_name}" << EOF
 #!/data/data/com.termux/files/usr/bin/bash
 proot-distro login ${ubuntu_version}
 EOF
-        chmod +x "$PREFIX/bin/start-ubuntu-smart"
+        chmod +x "$PREFIX/bin/start-${cmd_name}"
         
         print_success "Shortcut command created!"
         echo ""
@@ -1670,7 +1713,7 @@ EOF
         echo -e "  ║  Installation Complete! 🎉                       ║"
         echo -e "  ╠═══════════════════════════════════════════════════╣"
         echo -e "  ║                                                   ║"
-        echo -e "  ║  ▶ START Ubuntu:   start-ubuntu-smart             ║"
+        echo -e "  ║  ▶ START Ubuntu:   start-${cmd_name}$(printf '%*s' $((22 - ${#cmd_name})) '')║"
         echo -e "  ║                                                   ║"
         echo -e "  ║  এখন থেকে শুধু এই command দিলেই চলবে!           ║"
         echo -e "  ║  আর এই tool এ আসতে হবে না।                      ║"
@@ -1692,10 +1735,8 @@ start_ubuntu() {
     print_separator
     echo ""
     echo -e "  ${YELLOW}💡 TIP:${RESET} আপনি সরাসরি terminal এ এই commands ব্যবহার করতে পারেন:"
-    echo -e "     ${GREEN}start-ubuntu${RESET}          - Custom Super-Fix (udroid) start"
-    echo -e "     ${GREEN}stop-ubuntu${RESET}           - Custom Super-Fix (udroid) stop"
-    echo -e "     ${GREEN}start-ubuntu-official${RESET} - Official proot-distro start"
-    echo -e "     ${GREEN}start-ubuntu-smart${RESET}    - Smart Auto-Detect start"
+    echo -e "     ${GREEN}start-${PERSONALIZED_CMD_NAME}${RESET}    - Ubuntu চালু করতে"
+    echo -e "     ${GREEN}stop-${PERSONALIZED_CMD_NAME}${RESET}     - Ubuntu বন্ধ করতে"
     echo ""
     print_separator
     echo ""
@@ -1939,4 +1980,6 @@ main_menu() {
 # Entry Point
 # ============================================================
 check_termux
+show_banner
+ask_user_command_name
 main_menu
